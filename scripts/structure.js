@@ -17,29 +17,7 @@ import {
 } from "./modules/executors.js";
 
 //#region Entity
-/** @enum {String} */ const EntityTypes = {
-	/** @readonly */ ball: `ball`,
-	/** @readonly */ wall: `wall`,
-};
-Object.freeze(EntityTypes);
-
 class Entity extends EventTarget {
-	/**
-	 * @param {EntityTypes} type 
-	 */
-	constructor(type) {
-		super();
-		this.type = type;
-	}
-	/** @type {EntityTypes} */ #type;
-	get type() {
-		return this.#type;
-	}
-	set type(value) {
-		if (Object.values(EntityTypes).includes(value)) {
-			this.#type = value;
-		} else throw new TypeError(`Invalid ${value} entity type`);
-	}
 	/** @type {Point2D} */ #position = new Point2D(0, 0);
 	get position() {
 		return this.#position;
@@ -93,6 +71,11 @@ class Entity extends EventTarget {
 class Progenitor extends EventTarget {
 	constructor() {
 		super();
+
+		display.addEventListener(`update`, (event) => {
+			this.dispatchEvent(new Event(`update`, { bubbles: true }));
+		});
+
 		this.addEventListener(`update`, (event) => {
 			const corporeals = Array.from(this.#corporeals);
 			for (let index = 0; index < corporeals.length; index++) {
@@ -187,11 +170,8 @@ class Corporeal extends Entity {
 			second.#collider.begin.y <= first.#collider.end.y
 		);
 	}
-	/**
-	 * @param {String} name 
-	 */
-	constructor(name) {
-		super(name);
+	constructor() {
+		super();
 		this.addEventListener(`update`, (event) => {
 			this.#velocity.add(/** @type {Point2D} */(this.acceleration));
 			this.position.add(Point2D.multiply(this.#velocity, display.delta));
@@ -238,11 +218,40 @@ class Corporeal extends Entity {
 	}
 }
 //#endregion
+//#region Motion
+class Motion extends EventTarget {
+	/**
+	 * @param {Number} length 
+	 */
+	constructor(length) {
+		super();
+		this.#length = length;
+		this.#frame = 0;
+		const frameController = new AbortController();
+		progenitor.addEventListener(`update`, (event) => {
+			if (this.#frame < length) {
+				this.dispatchEvent(new Event(`update`));
+				this.#frame++;
+			} else {
+				frameController.abort();
+			}
+		}, { signal: frameController.signal });
+	}
+	/** @type {Number} */ #length;
+	/** @readonly */ get length() {
+		return this.#length;
+	}
+	/** @type {Number} */ #frame;
+	/** @readonly */ get frame() {
+		return this.#frame;
+	}
+}
+//#endregion
 //#region Metadata
 const developer = document.getElement(HTMLMetaElement, `meta[name="author"]`).content;
 const title = document.getElement(HTMLMetaElement, `meta[name="application-name"]`).content;
 
-const { PI, min, max } = Math;
+const { PI, min, max, hypot } = Math;
 const toDegFactor = 180 / PI, toRadFactor = PI / 180;
 const canvas = document.getElement(HTMLCanvasElement, `canvas#display`);
 const context = canvas.getContext(`2d`) ?? (() => {
@@ -250,20 +259,29 @@ const context = canvas.getContext(`2d`) ?? (() => {
 })();
 
 const display = new Display(context);
+let toSizeFactor = min(canvas.width, canvas.height) * 0.05;
+display.addEventListener(`resize`, (event) => {
+	toSizeFactor = min(canvas.width, canvas.height) * 0.05;
+});
+
+const progenitor = new Progenitor();
 //#endregion
 
 export {
-	EntityTypes,
 	Entity,
 	Progenitor,
 	CollisionDetail,
 	Corporeal,
+	Motion,
 	PI,
 	min,
 	max,
+	hypot,
 	toDegFactor,
 	toRadFactor,
 	canvas,
 	context,
 	display,
+	toSizeFactor,
+	progenitor,
 };
