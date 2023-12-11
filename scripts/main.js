@@ -68,7 +68,7 @@ void async function () {
 							const V = hypot(this.velocity.x, this.velocity.y);
 
 							if (other instanceof Ball) {
-								this.color = this.color.rotate(V / 60);
+								this.color = other.color; //this.color.rotate(V / 60);
 
 								const motionImpulse = new Motion(display.FPS / 8);
 								motionImpulse.addEventListener(`update`, (event2) => {
