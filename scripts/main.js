@@ -65,16 +65,14 @@ void async function () {
 						const { other } = event.detail;
 
 						if (other instanceof Corporeal) {
-							const V = hypot(this.velocity.x, this.velocity.y);
-
 							if (other instanceof Ball) {
-								this.color = other.color; //this.color.rotate(V / 60);
+								this.color = other.color;
 
 								const motionImpulse = new Motion(display.FPS / 8);
 								motionImpulse.addEventListener(`update`, (event2) => {
 									context.fillStyle = colorBackground.invert(0.75).toString();
 									context.beginPath();
-									context.arc(this.position.x, this.position.y, this.size.x * (V / 360) * (motionImpulse.frame / motionImpulse.length), 0, 2 * PI);
+									context.arc(this.position.x, this.position.y, this.size.x * (hypot(this.velocity.x, this.velocity.y) / 360) * (motionImpulse.frame / motionImpulse.length), 0, 2 * PI);
 									context.closePath();
 									context.fill();
 								});
