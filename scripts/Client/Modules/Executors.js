@@ -168,8 +168,4 @@ class Display extends FastEngine {
 }
 //#endregion
 
-export {
-	FastEngine,
-	PreciseEngine,
-	Display,
-};
+export { FastEngine, PreciseEngine, Display };

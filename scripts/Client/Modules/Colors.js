@@ -103,16 +103,14 @@ class Color {
 	 * @param {String} source 
 	 */
 	static tryParse(source) {
-		let result = null;
 		for (const [format, deep] of Object.values(ColorFormats).flatMap((format) => (/** @type {[String, Boolean][]} */ ([[format, false], [format, true]])))) {
 			try {
-				result = Color.parse(source, deep, format);
-				break;
+				return Color.parse(source, deep, format);
 			} catch {
 				continue;
 			}
 		}
-		return result;
+		return null;
 	}
 	//#endregion
 	//#region Constructors
@@ -235,11 +233,10 @@ class Color {
 	 */
 	static sepia(source, scale = 1) {
 		if (scale < 0 || scale > 1) throw new RangeError(`Property 'scale' out of range: ${scale}`);
-		const [red, green, blue] = [
-			Math.max(0, Math.min(((source.#red * 0.393) + (source.#green * 0.769) + (source.#blue * 0.189)), 255)),
-			Math.max(0, Math.min(((source.#red * 0.349) + (source.#green * 0.686) + (source.#blue * 0.168)), 255)),
-			Math.max(0, Math.min(((source.#red * 0.272) + (source.#green * 0.534) + (source.#blue * 0.131)), 255)),
-		];
+		const
+			red = Math.max(0, Math.min(((source.#red * 0.393) + (source.#green * 0.769) + (source.#blue * 0.189)), 255)),
+			green = Math.max(0, Math.min(((source.#red * 0.349) + (source.#green * 0.686) + (source.#blue * 0.168)), 255)),
+			blue = Math.max(0, Math.min(((source.#red * 0.272) + (source.#green * 0.534) + (source.#blue * 0.131)), 255));
 		return Color.viaRGB(
 			source.#red + (red - source.#red) * scale,
 			source.#green + (green - source.#green) * scale,
@@ -248,13 +245,12 @@ class Color {
 	}
 	/**
 	 * @param {Color} source 
-	 * @param {Number} angle 
+	 * @param {Number} angle (-∞ - ∞)
 	 */
 	static rotate(source, angle) {
-		const clone = source.clone();
-		const temp = Math.trunc(clone.#hue + angle) % 361;
-		clone.hue = (temp < 0) ? temp + 360 : temp;
-		return clone;
+		let hue = Math.trunc(source.#hue + angle) % 361;
+		if (hue < 0) hue += 360;
+		return Color.viaHSL(hue, source.#saturation, source.#lightness);
 	}
 	/**
 	 * @param {Color} source 
@@ -262,9 +258,7 @@ class Color {
 	 */
 	static saturate(source, scale) {
 		if (scale < 0 || scale > 1) throw new RangeError(`Property 'scale' out of range: ${scale}`);
-		const clone = source.clone();
-		clone.saturation = 100 * scale;
-		return clone;
+		return Color.viaHSL(source.#hue, 100 * scale, source.#lightness);
 	}
 	/**
 	 * @param {Color} source 
@@ -272,9 +266,7 @@ class Color {
 	 */
 	static illuminate(source, scale) {
 		if (scale < 0 || scale > 1) throw new RangeError(`Property 'scale' out of range: ${scale}`);
-		const clone = source.clone();
-		clone.lightness = 100 * scale;
-		return clone;
+		return Color.viaHSL(source.#hue, source.#saturation, 100 * scale);
 	}
 	/**
 	 * @param {Color} source 
@@ -282,9 +274,7 @@ class Color {
 	 */
 	static pass(source, scale) {
 		if (scale < 0 || scale > 1) throw new RangeError(`Property 'scale' out of range: ${scale}`);
-		const clone = source.clone();
-		clone.alpha = scale;
-		return clone;
+		return Color.viaHSL(source.#hue, source.#saturation, source.#lightness, scale);
 	}
 	//#endregion
 	//#region Properties
@@ -391,7 +381,7 @@ class Color {
 		return Color.sepia(this, scale);
 	}
 	/**
-	 * @param {Number} angle 
+	 * @param {Number} angle (-∞ - ∞)
 	 */
 	rotate(angle) {
 		return Color.rotate(this, angle);
@@ -418,7 +408,4 @@ class Color {
 }
 //#endregion
 
-export {
-	ColorFormats,
-	Color
-};
+export { ColorFormats, Color };

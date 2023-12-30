@@ -126,28 +126,28 @@ class Timespan {
 	 * @param {Timespan} first 
 	 * @param {Timespan} second 
 	 */
-	static add(first, second) {
+	static [`+`](first, second) {
 		return Timespan.viaDuration(first.#duration + second.#duration);
 	}
 	/**
 	 * @param {Timespan} first 
 	 * @param {Timespan} second 
 	 */
-	static subtract(first, second) {
+	static [`-`](first, second) {
 		return Timespan.viaDuration(first.#duration - second.#duration);
 	}
 	/**
 	 * @param {Timespan} timespan 
 	 * @param {Number} factor 
 	 */
-	static multiply(timespan, factor) {
+	static [`*`](timespan, factor) {
 		return Timespan.viaDuration(timespan.#duration * factor);
 	}
 	/**
 	 * @param {Timespan} timespan 
 	 * @param {Number} factor 
 	 */
-	static divide(timespan, factor) {
+	static [`/`](timespan, factor) {
 		return Timespan.viaDuration(timespan.#duration / factor);
 	}
 	/**
@@ -228,26 +228,26 @@ class Timespan {
 	/**
 	 * @param {Timespan} other 
 	 */
-	add(other) {
-		return Timespan.add(this, other);
+	[`+`](other) {
+		return Timespan[`+`](this, other);
 	}
 	/**
 	 * @param {Timespan} other 
 	 */
-	subtract(other) {
-		return Timespan.subtract(this, other);
+	[`-`](other) {
+		return Timespan[`-`](this, other);
 	}
 	/**
 	 * @param {Number} factor 
 	 */
-	multiply(factor) {
-		return Timespan.multiply(this, factor);
+	[`*`](factor) {
+		return Timespan[`*`](this, factor);
 	}
 	/**
 	 * @param {Number} factor 
 	 */
-	divide(factor) {
-		return Timespan.divide(this, factor);
+	[`/`](factor) {
+		return Timespan[`/`](this, factor);
 	}
 	invert() {
 		return Timespan.invert(this);
@@ -256,6 +256,4 @@ class Timespan {
 }
 //#endregion
 
-export {
-	Timespan
-};
+export { Timespan };

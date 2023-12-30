@@ -40,11 +40,9 @@ class Random {
 			}
 			begin = end;
 		}
-		throw new ReferenceError(`Can't select value. Maybe list is empty.`);
+		throw new RangeError(`Selector ${random} is out of range [0 - ${summary})`);
 	}
 }
 //#endregion
 
-export {
-	Random
-};
+export { Random };

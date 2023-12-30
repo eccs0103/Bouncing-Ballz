@@ -89,7 +89,4 @@ class Locker extends Database {
 }
 //#endregion
 
-export {
-	Database,
-	Locker
-};
+export { Database, Locker };

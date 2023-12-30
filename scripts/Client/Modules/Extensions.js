@@ -1,5 +1,5 @@
 // @ts-ignore
-/** @typedef {import("./declarations/extensions.d.ts")} */
+/** @typedef {import("../Declarations/Extensions.d.ts")} */
 
 "use strict";
 
@@ -16,6 +16,23 @@ HTMLElement.prototype.getElement = function (type, selectors) {
 	}
 	return (/** @type {InstanceType<T>} */ (element));
 };
+
+/**
+ * @template {typeof HTMLElement} T
+ * @param {T} type 
+ * @param {String} selectors 
+ * @param {Boolean} strict 
+ */
+HTMLElement.prototype.tryGetElement = function (type, selectors, strict = false) {
+	return (/** @type {Promise<InstanceType<T>>} */ (new Promise((resolve, reject) => {
+		const element = this.querySelector(selectors);
+		if (element instanceof type) {
+			resolve(/** @type {InstanceType<T>} */(element));
+		} else if (strict) {
+			reject(new TypeError(`Element ${selectors} is missing or has invalid type`));
+		}
+	})));
+};
 //#endregion
 //#region Document
 /**
@@ -27,14 +44,45 @@ Document.prototype.getElement = function (type, selectors) {
 	return this.documentElement.getElement(type, selectors);
 };
 
-// /**
-//  * @param  {any[]} data 
-//  */
-// Document.prototype.log = function (...data) {
-// 	const dialogConsole = this.getElement(HTMLDialogElement, `dialog.console`);
-// 	dialogConsole.innerText = `${data.join(` `)}`;
-// 	dialogConsole.open = true;
-// };
+/**
+ * @template {typeof HTMLElement} T
+ * @param {T} type 
+ * @param {String} selectors 
+ * @param {Boolean} strict
+ */
+Document.prototype.tryGetElement = function (type, selectors, strict) {
+	return this.documentElement.tryGetElement(type, selectors, strict);
+};
+
+const dialogConsole = document.getElement(HTMLDialogElement, `dialog.console`);
+/**
+ * @param {any} value 
+ * @returns {String}
+ */
+function logify(value) {
+	switch (typeof (value)) {
+		case `string`: return value;
+		case `number`:
+		case `bigint`:
+		case `boolean`: return String(value);
+		case `object`: return Object.entries(value).map(([key, value]) => `${key}: ${logify(value)}`).join(`,\n`);
+		case `symbol`:
+		case `function`:
+		case `undefined`: throw new TypeError(`Value has invalid ${typeof (value)} type`);
+	}
+}
+/**
+ * @param  {any[]} data 
+ */
+Document.prototype.log = function (...data) {
+	if (data.length > 0) {
+		if (!dialogConsole.open) dialogConsole.open = true;
+		dialogConsole.innerText = data.map(item => logify(item)).join(`\n`);
+	} else {
+		if (dialogConsole.open) dialogConsole.open = false;
+	}
+
+};
 
 /**
  * @param {any} error 
@@ -42,22 +90,24 @@ Document.prototype.getElement = function (type, selectors) {
 Document.prototype.analysis = function (error) {
 	return error instanceof Error ? error : new Error(`Undefined error type`);
 };
-
-/**
- * @param {Error} error 
- * @param {Boolean} locked
- */
-Document.prototype.prevent = async function (error, locked = true) {
-	const message = error.stack ?? `${error.name}: ${error.message}`;
-	if (locked) {
-		await window.alertAsync(message, `Error`);
-		location.reload();
-	} else {
-		console.error(message);
-	};
-};
 //#endregion
 //#region Math
+const toDegreeFactor = Math.PI / 180;
+/**
+ * @param {Number} radians 
+ */
+Math.toDegrees = function (radians) {
+	return radians * toDegreeFactor;
+};
+
+const toRadianFactor = 180 / Math.PI;
+/**
+ * @param {Number} degrees 
+ */
+Math.toRadians = function (degrees) {
+	return degrees * toRadianFactor;
+};
+
 /**
 * @param {Number} value 
 * @param {Number} period 
@@ -268,6 +318,20 @@ Window.prototype.load = async function (promise, duration = 200, delay = 0) {
 	], { duration: duration, fill: `both`, delay: delay }).finished;
 	dialogLoader.close();
 	return value;
+};
+
+/**
+ * @param {Error} error 
+ * @param {Boolean} locked
+ */
+Window.prototype.prevent = async function (error, locked = true) {
+	const message = error.stack ?? `${error.name}: ${error.message}`;
+	if (locked) {
+		await window.alertAsync(message, `Error`);
+		location.reload();
+	} else {
+		console.error(message);
+	};
 };
 //#endregion
 //#region Navigator
