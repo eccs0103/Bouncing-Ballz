@@ -216,6 +216,29 @@ class Progenitor extends Node {
 			this.dispatchEvent(new Event(event.type, { bubbles: true }));
 		});
 	}
+	/**
+	 * @param {Event} event 
+	 * @returns {Boolean}
+	 */
+	dispatchEvent(event) {
+		/** @type {Node[]} */ const stack = [this];
+		while (stack.length > 0) {
+			let node = stack.pop() ?? (() => {
+				throw new EvalError(`Invalid stack evalution`);
+			})();
+			if (node === this) {
+				if (!super.dispatchEvent(event)) return false;
+			} else {
+				if (!node.dispatchEvent(event)) return false;
+			}
+			if (event.bubbles) {
+				for (const child of node.children) {
+					stack.push(child);
+				}
+			}
+		}
+		return true;
+	}
 }
 //#endregion
 
