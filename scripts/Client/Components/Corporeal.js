@@ -21,6 +21,7 @@ class CollisionEvent extends Event {
 	 */
 	constructor(type, dict) {
 		super(type, dict);
+		this.#other = dict.other;
 	}
 	/** @type {Corporeal?} */ #other = null;
 	/** @readonly */ get other() {
@@ -136,4 +137,4 @@ class Corporeal extends Entity {
 }
 //#endregion
 
-export { Corporeal };
+export { CollisionEvent, Corporeal };

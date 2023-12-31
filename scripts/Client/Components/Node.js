@@ -70,7 +70,7 @@ class Group {
 		const parent = this.#owner, child = item;
 		if (!parent.dispatchEvent(new ModificationEvent(`tryabandonchild`, { node: child, cancelable: true }))) return;
 		if (!child.dispatchEvent(new ModificationEvent(`tryabandon`, { node: parent, cancelable: true }))) return;
-		this.#nodes.add(item);
+		this.#nodes.delete(item);
 		parent.dispatchEvent(new ModificationEvent(`abandonchild`, { node: child }));
 		child.dispatchEvent(new ModificationEvent(`abandon`, { node: parent }));
 	}
